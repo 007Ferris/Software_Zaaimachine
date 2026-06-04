@@ -18,6 +18,8 @@
 #include "TaskSleep.h"
 #include "Config.h"
 #include "IOLib.h"
+#include "QC7366Lib.h"
+#include "ActuatorLib.cpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // void task_motion_control(void *pvParameters)
@@ -29,19 +31,22 @@ void task_motion_control(void *pvparameters)
     ///
     while(true)
     {
-
         ///////////////////////////////////////////////////////////////////////
         ///
         ///Runnen van machine
         ///
         ///////////////////////////////////////////////////////////////////////
-        xSemaphoreTake(sem_seeding_run, portMAX_DELAY);
+        xSemaphoreTake(sem_motion_run, portMAX_DELAY);
         SerialPrintf("> seeding started in morion_control.cpp\n");
-        taskSleep(1000);
+
+        io_Init();
+        qc_Init();
+        act_Init();
+
         
 
 
-
+    taskSleep(1000);
     }
 
     //never get here
@@ -56,9 +61,12 @@ void ActuatorBasis()
         ///Instellen van machine diepte
         ///
         ///////////////////////////////////////////////////////////////////////
-            xSemaphoreTake(sem_motion_run, portMAX_DELAY);
             SerialPrintf("> Parameters in motion_control.cpp\n");
             taskSleep(2000);
-            xSemaphoreGive(sem_motion_run);
+
+
+
+
+
             SerialPrintf("> Parameters in motion_control.cpp klaar\n");
 }
