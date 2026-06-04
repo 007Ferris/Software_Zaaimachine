@@ -1,0 +1,28 @@
+/*
+ * SerialPrintf.h
+ *
+ * Created: 19-4-2020 19:25:10
+ *  Author: Roel Smeets
+ */ 
+
+
+#ifndef _SERIALPRINTF_H_
+#define _SERIALPRINTF_H_
+
+///////////////////////////////////////////////////////////////////////////////
+// system includes
+
+#include <stdarg.h>
+
+///////////////////////////////////////////////////////////////////////////////
+// #defines
+
+#define S_PRINTBUFSIZE 120
+
+///////////////////////////////////////////////////////////////////////////////
+// function prototypes
+
+void SerialPrintf (const char *Format, ...);
+
+
+#endif /* _SERIALPRINTF_H_ */

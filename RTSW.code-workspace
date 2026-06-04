@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"functional": "cpp",
+			"freertosconfig.h": "c",
+			"arduino.h": "c",
+			"freertos_tasks_c_additions.h": "c",
+			"typeinfo": "cpp",
+			"qc7366lib.h": "c",
+			"string_view": "cpp"
+		}
+	}
+}

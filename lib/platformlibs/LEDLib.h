@@ -1,0 +1,33 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// LEDLib.h
+//
+// Authors: 	Roel Smeets
+// Edit date: 	28-06-2025
+//
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef LEDLIB_H
+#define LEDLIB_H
+
+#include <Arduino.h>
+
+///////////////////////////////////////////////////////////////////////////////
+// defines
+
+#define N_LEDS		2 				
+#define LED_PCB		GPIO_NUM_15     // IO pin number on ESP32
+
+// LED numbers to use in led_Set(...)
+
+#define LED_BLUE		0 	// use this one for blue LED on
+#define LED_IO15		1 	// use this one for red LED on PCB
+
+
+///////////////////////////////////////////////////////////////////////////////
+// function prototypes
+
+void led_Init(void);
+void led_Set(uint8_t ledNumber, bool ledOn);
+
+#endif	// LEDLIB_H

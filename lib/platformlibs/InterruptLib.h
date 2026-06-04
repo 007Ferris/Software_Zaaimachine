@@ -1,0 +1,33 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// InterruptLib.h
+//
+// Authors: 	Roel Smeets
+// Edit date: 	28-06-2025
+//
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef INTERRUPTLIB_H_
+#define INTERRUPTLIB_H_
+
+///////////////////////////////////////////////////////////////////////////////
+// application includes
+
+#include <Arduino.h>
+
+///////////////////////////////////////////////////////////////////////////////
+// function typedef for interrupthandler
+
+typedef void (*INTERRUPTHANDLER)(void);
+
+
+// ///////////////////////////////////////////////////////////////////////////////
+// // function prototypes
+
+bool interrupt_Disable(int16_t gpioNumber);
+bool interrupt_Enable(int16_t gpioNumber);
+bool interrupt_AttachHandler(INTERRUPTHANDLER handler, int16_t gpioNumber, uint8_t flags);
+bool interrupt_DetachHandler(int16_t gpioNumber);
+bool interrupt_IsValidFlag(uint8_t flag);
+
+#endif // INTERRUPTLIB_H_

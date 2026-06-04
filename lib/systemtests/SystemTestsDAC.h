@@ -1,0 +1,22 @@
+//////////////////////////////////////////////////////////////////////////////
+//
+// SystemTestsDAC.h
+//
+// Authors: 	Roel Smeets
+// Edit date: 	21-07-2025
+//
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef SYSTEMTESTS_DAC_H
+#define SYSTEMTESTS_DAC_H
+
+///////////////////////////////////////////////////////////////////////////////
+// function prototypes
+
+extern const float g_DACOutvoltageTable[];
+extern const uint8_t g_NrOfDACValues;
+
+void test_DAC_Increment_Repeat(void);
+void test_DAC_SetOutputVoltage_Repeat(void);
+
+#endif  // SYSTEMTESTSDAC_H
