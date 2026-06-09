@@ -130,7 +130,7 @@ Tasks can be registered for tracking with `info_RegisterTaskByName()`.
 
 ## Project info
 
-- **Project:** ElektrischeTekening_Zaaimachine (Hardware Academy)
+- **Project:** ElektrischeTekening_Zaaimachine
 - **Platform:** NodeMCU32S Platform v2
 - **Driver libraries author:** Roel Smeets
 - **Language:** C++ · **RTOS:** FreeRTOS · **MCU:** ESP32
