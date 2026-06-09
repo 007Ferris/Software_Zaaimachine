@@ -31,7 +31,7 @@ void task_Main(void *pvparameters)
     taskSleep(500);
     OLED_write(10);
     taskSleep(500);
-    uint8_t MachineState = 0; //case: 0 NOODSTOP, 1 OPSTART, 2 Parameters instellen, 3 Parameters akkoord, 4 parameters uitvoeren, 5 Standby, 6 running, 7 stopping, 8 error
+    
 
     ///
     while(true)
@@ -48,8 +48,9 @@ void task_Main(void *pvparameters)
             //check for high signal ESTOP
             taskSleep(1000);
             OLED_write(3); // need reset input for whole process to start
+            xSemaphoreTake(sem_resetButton, 0);
             xSemaphoreTake(sem_resetButton, portMAX_DELAY);
-            xSemaphoreGive(sem_resetButton);
+
 
             MachineState = 1;
             break;
@@ -93,23 +94,25 @@ void task_Main(void *pvparameters)
             break;
 
         case 3:
-            /* code */
-            
-             // akkoord gaan met parameters
             SerialPrintf("> *** MachineState 3, Parameters akkoord ***\n");
-            if(button_IsPressed(ACTION_BUTTON) == true)
+            xSemaphoreTake(sem_resetButton, 0);
+            xSemaphoreTake(sem_actionButton, 0);
+            while (MachineState == 3)
             {
-                SerialPrintf("> Value's are accepted\n");
-                MachineState = 4;
-                    
+                if (xSemaphoreTake(sem_actionButton, pdMS_TO_TICKS(50)) == pdTRUE)
+                {
+                    SerialPrintf("> Value's are accepted\n");
+                    ///
+                    /// Geef in serial monitor value DiepteInstelling nog aan dit is al een global var
+                    ///
+                    MachineState = 4;
+                }
+                else if (xSemaphoreTake(sem_resetButton, 0) == pdTRUE)
+                {
+                    SerialPrintf("> Value's are rejected\n");
+                    MachineState = 2;
+                }
             }
-            else if(button_IsPressed(RESET_BUTTON) == true)
-            {
-                SerialPrintf("> Value's are rejected\n");
-
-                MachineState = 2;
-            }
-            
             break;
 
         case 4:
@@ -120,10 +123,9 @@ void task_Main(void *pvparameters)
         
             SerialPrintf("> Machine is addapting value's\n");
             OLED_write(2);
-            xSemaphoreGive(sem_motion_run); // motion control will run and go to given value
+            xSemaphoreGive(sem_motion_run); // motion control will run and go to given value DiepteInstelling
             taskSleep(3000);
             xSemaphoreTake(sem_motion_run, portMAX_DELAY); // distance value's are set
-
 
             MachineState = 5;
 
@@ -135,8 +137,9 @@ void task_Main(void *pvparameters)
 
             SerialPrintf("> Machine waits on start\n");
             OLED_write(4);  //start het planten
+            xSemaphoreTake(sem_actionButton, 0);
             xSemaphoreTake(sem_actionButton, portMAX_DELAY);
-            xSemaphoreGive(sem_actionButton);
+
 
             
             MachineState = 6;
@@ -151,16 +154,37 @@ void task_Main(void *pvparameters)
             xSemaphoreGive(sem_seeding_run);
             OLED_write(8);
 
-            //machineRunning = true; //enable sensor checks
+            machineRunning = true; //enable sensor checks
 
             SerialPrintf("> Machine is planting...\n");
 
-            taskSleep(10000);
-            SerialPrintf(">>> herhalen van programma!!!!!");
+            
+            while (button_IsPressed(STOP_BUTTON) == false && MachineState == 6) 
+            {
 
+               static uint32_t dbg = 0;
+                if (millis() - dbg > 20000) {
+                    SerialPrintf(">>> state6 loop: MS=%d, &MS=%p\n",
+                     MachineState, (void*)&MachineState);
+                    dbg = millis();
+                }
+                    taskSleep(100);
+            }
 
-            MachineState = 0;
+                SerialPrintf(">>> EXITED state6 loop, MS=%d\n", MachineState);
 
+            if (MachineState != 6)
+            {
+                SerialPrintf(">>> Stopped by sensor/error, MachineState = %d\n", MachineState);
+            }
+            else
+            {
+                SerialPrintf(">>> Stopped by user (STOP button)\n");
+                MachineState = 0;
+            }
+
+            machineRunning = false;   // stop the sensor checks
+            SerialPrintf("> adress machinestate %s\n", &MachineState);
             break;
 
         default:

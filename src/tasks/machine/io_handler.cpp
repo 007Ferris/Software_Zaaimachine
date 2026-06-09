@@ -27,6 +27,14 @@ bool checkZaadInhoud();
 uint64_t lastIRtrigger();
 bool SeedInWheel();
 
+
+static const ButtonBinding buttons[] = {
+    { RESET_BUTTON,  &sem_resetButton,  "RESET"  },
+    { ACTION_BUTTON, &sem_actionButton, "ACTION" },
+    { STOP_BUTTON,   &sem_stopButton,   "STOP"   },
+}; // tabel voor makkelijke toevoeging van knoppen
+
+
 void updateOLED(uint8_t zaaiAfstand_mm, uint8_t zaaiDiepte_mm);
 void OLED_write(uint8_t writeFunction);
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,6 +50,9 @@ void task_io_handler(void *pvparameters)
     uint8_t zaaiAfstand_mm      = 0;    // gemapte waarde van adc  
     uint8_t zaaiDiepte_mm       = 0;    // gemapte waarde van adc
 
+    static uint32_t last_inhoud_check_ms = 0; // laatste inhouds check
+    const uint32_t INHOUD_CHECK_INTERVAL_MS = 60000; // interval tussen checks (60sec)
+
     uint64_t last_IR_read_ms = 0;
     bool inhoudSensor = false;
     bool seedingWheel = false;
@@ -53,22 +64,23 @@ void task_io_handler(void *pvparameters)
         if(instellenMachine == 1)
         {
             xSemaphoreTake(sem_InstelWaarde_count, portMAX_DELAY);
+            
             while(button_IsPressed(ACTION_BUTTON) == false)
             {
             //get afstand in mm
         
             ADC_Value1 = adc_ReadRaw(channel_afstandADC);
-            zaaiAfstand_mm = map(ADC_Value1, 0, 4095, 0, MAX_ZAAIAFSTAND);
+            zaaiAfstand_mm = map(ADC_Value1, 0, 4095, 1, MAX_ZAAIAFSTAND);
 
             ADC_Value2 = adc_ReadRaw(channel_diepteADC);
-            zaaiDiepte_mm = map(ADC_Value2, 0, 4095, 0, MAX_ZAAIDIEPTE);
+            zaaiDiepte_mm = map(ADC_Value2, 0, 4095, 1, MAX_ZAAIDIEPTE);
         
             updateOLED(zaaiAfstand_mm, zaaiDiepte_mm);
-            taskSleep(500); 
-                
             }
-            instellenMachine = 0;
+
+            DiepteInstelling = zaaiDiepte_mm;
             xSemaphoreGive(sem_configUpdated);
+            instellenMachine = 0;
             taskSleep(500);
         }   
 
@@ -76,51 +88,83 @@ void task_io_handler(void *pvparameters)
         //knoppen controle
         /////////////////////////////////////
 
-        if(button_IsPressed(RESET_BUTTON) == true)
-        {
-            SerialPrintf("*** RESET BUTTON PRESSED ***\n");
-            xSemaphoreGive(sem_resetButton);
-            taskSleep(100);
-            xSemaphoreTake(sem_actionButton, 10);
-        }
-        else if (button_IsPressed(ACTION_BUTTON) == true)
-        {
-            SerialPrintf("*** ACTION BUTTON PRESSED ***\n");
-            xSemaphoreGive(sem_actionButton);
-            taskSleep(100);
-            xSemaphoreTake(sem_actionButton, 10);
-        }
-        else if (button_IsPressed(STOP_BUTTON) == true)
-        {
-            SerialPrintf("*** STOP BUTTON PRESSED ***\n");
-            xSemaphoreGive(sem_stopButton);
-            taskSleep(100);
-            xSemaphoreTake(sem_stopButton, 10);
-        }
-        
-        
+        // if(button_IsPressed(RESET_BUTTON) == true)
+        // {
+        //     SerialPrintf("*** RESET BUTTON PRESSED ***\n");
+        //     xSemaphoreTake(sem_resetButton, 0);
+        //     xSemaphoreGive(sem_resetButton);
+        //     taskSleep(100);
+        //     xSemaphoreTake(sem_actionButton, 100);
+        // }
+        // else if (button_IsPressed(ACTION_BUTTON) == true)
+        // {
+        //     SerialPrintf("*** ACTION BUTTON PRESSED ***\n");
+        //     xSemaphoreTake(sem_actionButton, 0);
+        //     xSemaphoreGive(sem_actionButton);
+        //     taskSleep(100);
+        //     xSemaphoreTake(sem_actionButton, 100);
+        // }
+        // else if (button_IsPressed(STOP_BUTTON) == true)
+        // {
+        //     SerialPrintf("*** STOP BUTTON PRESSED ***\n");
+        //     xSemaphoreTake(sem_stopButton, 0);
+        //     xSemaphoreGive(sem_stopButton);
+        //     taskSleep(100);
+        //     xSemaphoreTake(sem_stopButton, 100);
+        // }
 
+        for (const auto &b : buttons) // for loop auto definitie, adress van element van buttons
+        {
+            if (button_IsPressed(b.button)) // check de verschillende buttons
+            {
+                SerialPrintf("*** %s BUTTON PRESSED ***\n", b.name); // display buttonpredded + name
+                xSemaphoreGive(*b.sem); // give consumer button semaphore
+                taskSleep(100);   // debounce so we don't fire again next pass
+                break;
+            }
+        }
+        
+        /////////////////////////////////////
+        //sensoren controle
+        /////////////////////////////////////
 
         if(machineRunning == true)
         {
+
             //check sensoren
-            inhoudSensor = checkZaadInhoud();
-            SerialPrintf("> Zaadinhuod %s\n", inhoudSensor ? "OK" : "*** LEEG ***");
-            if(inhoudSensor == false)
+            uint32_t now = millis();
+            if (now - last_inhoud_check_ms >= INHOUD_CHECK_INTERVAL_MS) //check of interval al vergaan is (1min)
             {
-                //error geen zaad in opslag
-                OLED_write(7);
+                last_inhoud_check_ms = now;
+                inhoudSensor = checkZaadInhoud(); // check zaad inhoud
+                SerialPrintf("> Zaadinhoud %s\n", inhoudSensor ? "OK" : "*** LEEG ***");
+
+                if (!inhoudSensor)
+                {
+                    // error: geen zaad in opslag
+                    //SerialPrintf(">>> SENSOR EMPTY: MachineState was %d, &MS=%p\n",
+                    //MachineState, (void*)&MachineState);
+
+                    SerialPrintf("*** go to error ****\n");
+
+                    MachineState = 0;
+                    SerialPrintf(">>> SENSOR EMPTY: MachineState now %d\n", MachineState);
+                }
             }
 
             last_IR_read_ms = lastIRtrigger();
         
-
-            seedingWheel = SeedInWheel();
-            SerialPrintf("> Zaadwielinhoud %s\n", seedingWheel ? "OK" : "*** LEEG ***");
-            if(seedingWheel == false)
+            if(seedPlanted)
             {
-                //error geen zaad in het zaaiwiel
-                OLED_write(7);
+                seedingWheel = SeedInWheel();
+                SerialPrintf("> Zaadwielinhoud %s\n", seedingWheel ? "OK" : "*** LEEG ***");
+
+                if(!seedingWheel)
+                {
+                    //error geen zaad in het zaaiwiel
+                    MachineState = 0;
+                }
+                seedPlanted = !seedPlanted;
             }
 
         }

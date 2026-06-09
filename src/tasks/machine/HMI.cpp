@@ -31,7 +31,7 @@ void task_HMI(void *pvparameters)
     ///
     while(true)
     {
-
+        //hmi structuur naar AmigA
     }
 
     //never get here
@@ -54,7 +54,7 @@ void updateOLED(uint8_t zaaiAfstand, uint8_t zaaiDiepte)
 	oled_WriteLine(1, buf1,                 ALIGN_CENTER);
 	oled_WriteLine(2, "ZaaiDiepte(mm)",     ALIGN_CENTER);
     oled_WriteLine(3, buf2,                 ALIGN_CENTER);
-
+    taskSleep(500);
     
 }
 void OLED_write(uint8_t writeFunction)//case: 1 parameter, 2 wachten, 3 press reset, 4 press action, 5 press stop, 6 Estop, 7 Error, 8 machine working, 9 akkoord action, 10 clear
@@ -116,12 +116,14 @@ void OLED_write(uint8_t writeFunction)//case: 1 parameter, 2 wachten, 3 press re
 	    oled_WriteLine(1, "Aan het",        ALIGN_CENTER);
         oled_WriteLine(2, "Zaaien",         ALIGN_CENTER);
 	    oled_WriteLine(3, "............",   ALIGN_CENTER);
+        break;
     case 9:
         oled_Clear();
         oled_WriteLine(0, "Parameter Akkoord?", ALIGN_CENTER);
 	    oled_WriteLine(1, "PRESS ACTION",       ALIGN_CENTER);
         oled_WriteLine(2, "OR",                 ALIGN_CENTER);
 	    oled_WriteLine(3, "RESET BUTTON",       ALIGN_CENTER);
+        break;
     case 10:
         oled_Clear();
     break;

@@ -19,7 +19,7 @@
 #include "Config.h"
 #include "IOLib.h"
 #include "QC7366Lib.h"
-#include "ActuatorLib.cpp"
+#include "ActuatorLib.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // void task_motion_control(void *pvParameters)
@@ -31,19 +31,26 @@ void task_motion_control(void *pvparameters)
     ///
     while(true)
     {
+
         ///////////////////////////////////////////////////////////////////////
         ///
         ///Runnen van machine
         ///
         ///////////////////////////////////////////////////////////////////////
         xSemaphoreTake(sem_motion_run, portMAX_DELAY);
-        SerialPrintf("> seeding started in morion_control.cpp\n");
+        SerialPrintf("> instellen started in morion_control.cpp\n");
 
-        io_Init();
-        qc_Init();
-        act_Init();
-
+        /* actuator naar positie brengen */
         
+        // io_init, qc_init en act_init geinitialiseerd in  platformInit(void)
+
+        // act_MovePositionMm(DiepteInstelling);   /// push out to 35 mm DiepteInstelling = global ingeseldt vanuit io_handler
+    
+
+
+        taskSleep(3000);
+        xSemaphoreGive(sem_motion_run);
+
 
 
     taskSleep(1000);
@@ -61,12 +68,11 @@ void ActuatorBasis()
         ///Instellen van machine diepte
         ///
         ///////////////////////////////////////////////////////////////////////
-            SerialPrintf("> Parameters in motion_control.cpp\n");
+
+            SerialPrintf("> Home pos in motion_control.cpp\n");
             taskSleep(2000);
 
+            /// act_Home();
 
-
-
-
-            SerialPrintf("> Parameters in motion_control.cpp klaar\n");
+            SerialPrintf("> Home pos in motion_control.cpp klaar\n");
 }

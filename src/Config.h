@@ -11,6 +11,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <Arduino.h>
 ///////////////////////////////////////////////////////////////////////////////
 // define during development for testing individual devices on the board,
 // 0 = regular operation, 1 = systems test only
@@ -159,7 +160,7 @@ extern QueueHandle_t diag_queue;
 // bools
 extern bool instellenMachine;
 extern bool machineRunning;
-
+extern bool seedPlanted;
 
 //Input
 extern uint8_t capacitieveSensor;  //gpio36
@@ -175,6 +176,8 @@ extern uint8_t IRsensor;  //gpio34
 #define ACTION_BUTTON 1
 #define STOP_BUTTON 2
 
+extern uint8_t DiepteInstelling;
+extern volatile uint8_t MachineState;
 
 
 #endif	// CONFIG_H

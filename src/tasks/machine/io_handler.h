@@ -26,6 +26,15 @@ typedef struct
     /* data */
 } io_handler_value_t;
 
+struct ButtonBinding {
+    uint8_t              button;
+    SemaphoreHandle_t   *sem;
+    const char          *name;
+}; // structure voor de knoppen tabel
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // function prototypes
 

@@ -44,6 +44,8 @@
 #include "SPIeeprom.h"
 #include "ADC3208Lib.h"
 
+#include "ActuatorLib.h"
+
 #include "SystemTests.h"
 
 #include "Config.h"
@@ -86,36 +88,40 @@ xTaskHandle h_diagnostics       = NULL;
 
 //─── semaphores ─────────────────────────────────────────────────────────
 
-xSemaphoreHandle sem_motion_run             = NULL;     ///< Permits MotionController to drive
-xSemaphoreHandle sem_seeding_run            = NULL;    ///< Permits seed valves to open
-xSemaphoreHandle sem_comms_active           = NULL;   ///< Permits CAN TX burst
-xSemaphoreHandle sem_configUpdated          = NULL;  ///< Permits HMI, diagnostics and alarm to be active as they are non essential tasks
-xSemaphoreHandle sem_InstelWaarde_count     = NULL; ///< Premits lenght preset
-xSemaphoreHandle sem_InstelWaarde_count2    = NULL;///< Premits depth preset
-xSemaphoreHandle sem_resetButton            = NULL;///< keeps track of resetbutton
-xSemaphoreHandle sem_actionButton           = NULL;///< keeps track of actionbutton
-xSemaphoreHandle sem_stopButton             = NULL;///< keeps track of stopbutton
+xSemaphoreHandle sem_motion_run             = NULL;         ///< Permits MotionController to drive
+xSemaphoreHandle sem_seeding_run            = NULL;        ///< Permits seed valves to open
+xSemaphoreHandle sem_comms_active           = NULL;       ///< Permits CAN TX burst
+xSemaphoreHandle sem_configUpdated          = NULL;      ///< Permits HMI, diagnostics and alarm to be active as they are non essential tasks
+xSemaphoreHandle sem_InstelWaarde_count     = NULL;     ///< Premits lenght preset
+xSemaphoreHandle sem_InstelWaarde_count2    = NULL;    ///< Premits depth preset
+xSemaphoreHandle sem_resetButton            = NULL;   ///< keeps track of resetbutton
+xSemaphoreHandle sem_actionButton           = NULL;  ///< keeps track of actionbutton
+xSemaphoreHandle sem_stopButton             = NULL; ///< keeps track of stopbutton
 
 //─── Queues ─────────────────────────────────────────────────────────
 
 xQueueHandle   alarm_queue                  = NULL;        ///< Any task → AlarmManager
 xQueueHandle   can_tx_queue                 = NULL;       ///< Any task → CAN TX
-xQueueHandle   can_rx_queue                 = NULL;       ///< CAN ISR/driver → CommManager
-xQueueHandle   hmi_cmd_queue                = NULL;      ///< HMI → StateMachine
-xQueueHandle   diag_queue                   = NULL;         ///< Any task → Diagnostics
+xQueueHandle   can_rx_queue                 = NULL;      ///< CAN ISR/driver → CommManager
+xQueueHandle   hmi_cmd_queue                = NULL;     ///< HMI → StateMachine
+xQueueHandle   diag_queue                   = NULL;    ///< Any task → Diagnostics
 
 
 //─── intergers ─────────────────────────────────────────────────────────
 
-uint8_t semaMaxCount	    = 1;
-uint8_t semaInitialCount    = 0;
+uint8_t semaMaxCount	    = 1;    //maximale semaphore
+uint8_t semaInitialCount    = 0;    //initiale count semaphore
 
-uint8_t capacitieveSensor   = GPIO_NUM_36;  //gpio36
-uint8_t LEDsensor           = GPIO_NUM_39;  //gpio39
+uint8_t capacitieveSensor   = GPIO_NUM_36;    //gpio36
+uint8_t LEDsensor           = GPIO_NUM_39;   //gpio39
 uint8_t IRsensor            = GPIO_NUM_34;  //gpio34
 
-bool instellenMachine       = false;
-bool machineRunning         = false; 
+volatile uint8_t MachineState        = 0; //case: 0 NOODSTOP, 1 OPSTART, 2 Parameters instellen, 3 Parameters akkoord, 4 parameters uitvoeren, 5 Standby, 6 running, 7 stopping, 8 error
+uint8_t DiepteInstelling    = 0;        // basis diepte diepte instelling
+
+bool instellenMachine       = false;    // is machine in instel stand of niet
+bool machineRunning         = false;    // is machine aan het planten
+bool seedPlanted            = false;    // counts true if seedwheel rotates 90 degre
 
 char messageSize[30];
 
@@ -169,6 +175,7 @@ bool platformInit(void)
     qc_Init();
 	dac_Init();
    	adc_Init();
+    act_Init();
 
 
     i2cOK  = i2c_Init();
