@@ -30,9 +30,9 @@ void task_Main(void *pvparameters)
 {
     taskSleep(500);
     OLED_write(10);
-    taskSleep(500);
-    
-
+    taskSleep(500); // opstart sleep zoadat alle taken ook klaar zijn
+    ///
+    ///
     ///
     while(true)
     {
@@ -45,8 +45,10 @@ void task_Main(void *pvparameters)
 
             SerialPrintf("> *** MachineState 0, NOODSTOP ***\n");
             OLED_write(6);
-            //check for high signal ESTOP
-            taskSleep(1000);
+            ///
+            ///check for high signal ESTOP
+            ///
+            taskSleep(1000); //test_sleep
             OLED_write(3); // need reset input for whole process to start
             xSemaphoreTake(sem_resetButton, 0);
             xSemaphoreTake(sem_resetButton, portMAX_DELAY);
@@ -60,10 +62,12 @@ void task_Main(void *pvparameters)
             SerialPrintf("> *** MachineState 1, OPSTART ***\n");
             
             OLED_write(2);
-            taskSleep(2000);
+            taskSleep(2000); //test_sleep
             // hier nog de opstart code
             ActuatorBasis();
-
+            ///
+            ///semaphore dat basis stand is berijkt
+            ///
             MachineState = 2;
             break;
         
@@ -86,7 +90,7 @@ void task_Main(void *pvparameters)
             OLED_write(1); //parameters zijn ingesteld
         
 
-            taskSleep(2000);
+            taskSleep(2000); //test_sleep
             OLED_write(9);
 
             MachineState = 3;
@@ -102,9 +106,16 @@ void task_Main(void *pvparameters)
                 if (xSemaphoreTake(sem_actionButton, pdMS_TO_TICKS(50)) == pdTRUE)
                 {
                     SerialPrintf("> Value's are accepted\n");
-                    ///
-                    /// Geef in serial monitor value DiepteInstelling nog aan dit is al een global var
-                    ///
+                    
+                    SerialPrintf(">>> Zaai Diepte ingesteld ZD = %d\n ", zaaiDiepte_mm);
+                    SerialPrintf(">>> Zaai Afstand ingesteld ZA = %d\n", zaaiAfstand_mm); 
+
+                    //////
+                    ////// NIEUW
+                    //////
+                    taskSleep(500); //test_sleep
+
+
                     MachineState = 4;
                 }
                 else if (xSemaphoreTake(sem_resetButton, 0) == pdTRUE)
@@ -124,7 +135,7 @@ void task_Main(void *pvparameters)
             SerialPrintf("> Machine is addapting value's\n");
             OLED_write(2);
             xSemaphoreGive(sem_motion_run); // motion control will run and go to given value DiepteInstelling
-            taskSleep(3000);
+            taskSleep(3000); //test_sleep later ca 500ms
             xSemaphoreTake(sem_motion_run, portMAX_DELAY); // distance value's are set
 
             MachineState = 5;
@@ -146,7 +157,12 @@ void task_Main(void *pvparameters)
 
             break;
 
-        case 6:
+        case 6: 
+        
+            ////////////////
+            /// Stil wont work with sensor shut off 100% of the time
+            ////////////////
+
             /* code */
             SerialPrintf("> *** MachineState 6, Running ***\n");
 
@@ -168,7 +184,7 @@ void task_Main(void *pvparameters)
                      MachineState, (void*)&MachineState);
                     dbg = millis();
                 }
-                    taskSleep(100);
+                    taskSleep(100); // sleep 100ms for ram ussage 
             }
 
                 SerialPrintf(">>> EXITED state6 loop, MS=%d\n", MachineState);
@@ -185,9 +201,11 @@ void task_Main(void *pvparameters)
 
             machineRunning = false;   // stop the sensor checks
             SerialPrintf("> adress machinestate %s\n", &MachineState);
+            SerialPrintf("\n\n >>> *** Machine restarting process *** \n\n\n");
             break;
 
         default:
+            SerialPrintf(">>> WARNING *** Machine state in default state *** \n");
             break;
         }
 

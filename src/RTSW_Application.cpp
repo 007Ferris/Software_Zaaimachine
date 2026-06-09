@@ -116,6 +116,9 @@ uint8_t capacitieveSensor   = GPIO_NUM_36;    //gpio36
 uint8_t LEDsensor           = GPIO_NUM_39;   //gpio39
 uint8_t IRsensor            = GPIO_NUM_34;  //gpio34
 
+uint8_t zaaiAfstand_mm      = 0;    // gemapte waarde van adc -> io_handler
+uint8_t zaaiDiepte_mm       = 0;    // gemapte waarde van adc -> io_handler
+
 volatile uint8_t MachineState        = 0; //case: 0 NOODSTOP, 1 OPSTART, 2 Parameters instellen, 3 Parameters akkoord, 4 parameters uitvoeren, 5 Standby, 6 running, 7 stopping, 8 error
 uint8_t DiepteInstelling    = 0;        // basis diepte diepte instelling
 

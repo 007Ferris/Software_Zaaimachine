@@ -42,13 +42,12 @@ void OLED_write(uint8_t writeFunction);
 
 void task_io_handler(void *pvparameters)
 {
-    taskSleep(500);
+    taskSleep(500); //opstart sleep
     uint8_t channel_afstandADC = 4;     //channel adc 1
     uint8_t channel_diepteADC  = 5;     //channel adc 2
     uint32_t ADC_Value1         = 0;    //adc waarde potmeter
     uint32_t ADC_Value2         = 0;    //adc waarde potmeter
-    uint8_t zaaiAfstand_mm      = 0;    // gemapte waarde van adc  
-    uint8_t zaaiDiepte_mm       = 0;    // gemapte waarde van adc
+
 
     static uint32_t last_inhoud_check_ms = 0; // laatste inhouds check
     const uint32_t INHOUD_CHECK_INTERVAL_MS = 60000; // interval tussen checks (60sec)

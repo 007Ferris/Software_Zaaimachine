@@ -179,5 +179,7 @@ extern uint8_t IRsensor;  //gpio34
 extern uint8_t DiepteInstelling;
 extern volatile uint8_t MachineState;
 
+extern uint8_t zaaiAfstand_mm;
+extern uint8_t zaaiDiepte_mm;
 
 #endif	// CONFIG_H

@@ -26,7 +26,7 @@
 
 void task_motion_control(void *pvparameters)
 {
-    ///
+    taskSleep(500); //opstart sleep
     ///
     ///
     while(true)
@@ -48,12 +48,12 @@ void task_motion_control(void *pvparameters)
     
 
 
-        taskSleep(3000);
+        taskSleep(3000); //test_sleep
         xSemaphoreGive(sem_motion_run);
 
 
 
-    taskSleep(1000);
+    taskSleep(1000); //test_sleep
     }
 
     //never get here
@@ -70,7 +70,7 @@ void ActuatorBasis()
         ///////////////////////////////////////////////////////////////////////
 
             SerialPrintf("> Home pos in motion_control.cpp\n");
-            taskSleep(2000);
+            taskSleep(2000); //test_sleep
 
             /// act_Home();
 

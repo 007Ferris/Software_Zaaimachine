@@ -26,7 +26,7 @@
 void task_HMI(void *pvparameters)
 {
 
-    oled_Clear();
+    taskSleep(500); //opstart sleep
     
     ///
     while(true)
@@ -54,7 +54,7 @@ void updateOLED(uint8_t zaaiAfstand, uint8_t zaaiDiepte)
 	oled_WriteLine(1, buf1,                 ALIGN_CENTER);
 	oled_WriteLine(2, "ZaaiDiepte(mm)",     ALIGN_CENTER);
     oled_WriteLine(3, buf2,                 ALIGN_CENTER);
-    taskSleep(500);
+    taskSleep(500); //update of OLED delay
     
 }
 void OLED_write(uint8_t writeFunction)//case: 1 parameter, 2 wachten, 3 press reset, 4 press action, 5 press stop, 6 Estop, 7 Error, 8 machine working, 9 akkoord action, 10 clear
